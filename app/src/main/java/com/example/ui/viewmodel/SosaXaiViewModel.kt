@@ -20,11 +20,35 @@ import kotlinx.coroutines.launch
 
 enum class AppNavTab(val title: String) {
     OVERVIEW("Overview"),
+    AI_CHAT("AI Assistant"),
     GROK_LEO("Grok Leo Engine"),
     ENDPOINTS("API Endpoints"),
     CONTAINERS("Containers"),
     SECURITY("Security & Logs")
 }
+
+data class ChatMessage(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val sender: String, // "user" or "ai"
+    val content: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val latencyMs: Long? = null,
+    val isThinking: Boolean = false
+)
+
+data class ChatState(
+    val messages: List<ChatMessage> = listOf(
+        ChatMessage(
+            sender = "ai",
+            content = "Greetings. I am Sosa X AI Assistant. How can I assist you with architecture design, cloud orchestration, Grok Leo reasoning, or security auditing today?"
+        )
+    ),
+    val isSending: Boolean = false,
+    val currentInput: String = "",
+    val selectedModel: String = "gemini-3.1-pro-preview",
+    val isHighThinking: Boolean = true,
+    val errorMessage: String? = null
+)
 
 data class GrokLeoExecutionState(
     val isExecuting: Boolean = false,
@@ -55,6 +79,9 @@ class SosaXaiViewModel(application: Application) : AndroidViewModel(application)
 
     private val _cryptoResult = MutableStateFlow<CryptoVerificationResult?>(null)
     val cryptoResult: StateFlow<CryptoVerificationResult?> = _cryptoResult.asStateFlow()
+
+    private val _chatState = MutableStateFlow(ChatState())
+    val chatState: StateFlow<ChatState> = _chatState.asStateFlow()
 
     init {
         val database = AppDatabase.getDatabase(application, viewModelScope)
@@ -223,6 +250,81 @@ class SosaXaiViewModel(application: Application) : AndroidViewModel(application)
     fun clearTelemetry() {
         viewModelScope.launch {
             repository.clearTelemetryLogs()
+        }
+    }
+
+    // AI Chat Management
+    fun updateChatInput(input: String) {
+        _chatState.value = _chatState.value.copy(currentInput = input)
+    }
+
+    fun setChatModel(model: String) {
+        _chatState.value = _chatState.value.copy(selectedModel = model)
+    }
+
+    fun toggleChatHighThinking(enabled: Boolean) {
+        _chatState.value = _chatState.value.copy(isHighThinking = enabled)
+    }
+
+    fun clearChat() {
+        _chatState.value = _chatState.value.copy(
+            messages = listOf(
+                ChatMessage(
+                    sender = "ai",
+                    content = "Chat cleared. Ready for your instructions on Sosa X architecture, APIs, container topologies, or reasoning."
+                )
+            ),
+            errorMessage = null
+        )
+    }
+
+    fun sendChatMessage(customText: String? = null) {
+        val messageText = (customText ?: _chatState.value.currentInput).trim()
+        if (messageText.isBlank()) return
+
+        val userMessage = ChatMessage(
+            sender = "user",
+            content = messageText
+        )
+
+        val updatedMessages = _chatState.value.messages + userMessage
+        _chatState.value = _chatState.value.copy(
+            messages = updatedMessages,
+            currentInput = "",
+            isSending = true,
+            errorMessage = null
+        )
+
+        viewModelScope.launch {
+            val history = updatedMessages
+                .dropLast(1)
+                .map { Pair(if (it.sender == "user") "user" else "model", it.content) }
+
+            val result = repository.sendChatMessage(
+                history = history,
+                message = messageText,
+                model = _chatState.value.selectedModel,
+                isHighThinking = _chatState.value.isHighThinking
+            )
+
+            if (result.isSuccess) {
+                val (reply, duration) = result.getOrThrow()
+                val aiMessage = ChatMessage(
+                    sender = "ai",
+                    content = reply,
+                    latencyMs = duration
+                )
+                _chatState.value = _chatState.value.copy(
+                    messages = _chatState.value.messages + aiMessage,
+                    isSending = false
+                )
+            } else {
+                val err = result.exceptionOrNull()?.localizedMessage ?: "Failed to get AI response"
+                _chatState.value = _chatState.value.copy(
+                    isSending = false,
+                    errorMessage = err
+                )
+            }
         }
     }
 }

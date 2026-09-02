@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -135,6 +136,7 @@ fun MainScreen(
                         val isSelected = selectedTab == tab
                         val icon = when (tab) {
                             AppNavTab.OVERVIEW -> Icons.Default.Dashboard
+                            AppNavTab.AI_CHAT -> Icons.AutoMirrored.Filled.Chat
                             AppNavTab.GROK_LEO -> Icons.Default.Psychology
                             AppNavTab.ENDPOINTS -> Icons.Default.Api
                             AppNavTab.CONTAINERS -> Icons.Default.Layers
@@ -155,9 +157,10 @@ fun MainScreen(
                                 Text(
                                     text = when (tab) {
                                         AppNavTab.OVERVIEW -> "Status"
+                                        AppNavTab.AI_CHAT -> "AI Chat"
                                         AppNavTab.GROK_LEO -> "Grok Leo"
                                         AppNavTab.ENDPOINTS -> "APIs"
-                                        AppNavTab.CONTAINERS -> "Containers"
+                                        AppNavTab.CONTAINERS -> "Pods"
                                         AppNavTab.SECURITY -> "Vault"
                                     },
                                     fontSize = 10.sp,
@@ -186,6 +189,7 @@ fun MainScreen(
         ) {
             when (selectedTab) {
                 AppNavTab.OVERVIEW -> OverviewScreen(viewModel = viewModel)
+                AppNavTab.AI_CHAT -> AiChatScreen(viewModel = viewModel)
                 AppNavTab.GROK_LEO -> GrokLeoScreen(viewModel = viewModel)
                 AppNavTab.ENDPOINTS -> EndpointsScreen(viewModel = viewModel)
                 AppNavTab.CONTAINERS -> ContainersScreen(viewModel = viewModel)

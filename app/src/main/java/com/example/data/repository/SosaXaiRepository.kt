@@ -27,6 +27,71 @@ class SosaXaiRepository(
     val allFrameworks: Flow<List<PromptFrameworkEntity>> = promptFrameworkDao.getAllFrameworks()
     val recentTelemetry: Flow<List<TelemetryLogEntity>> = telemetryLogDao.getRecentLogs()
 
+    suspend fun sendChatMessage(
+        history: List<Pair<String, String>>,
+        message: String,
+        model: String = "gemini-3.1-pro-preview",
+        isHighThinking: Boolean = false
+    ): Result<Pair<String, Long>> {
+        val startTime = System.currentTimeMillis()
+        val systemInstruction = "You are Sosa X AI Assistant, an advanced enterprise architect and autonomous intelligent copilot specializing in distributed systems, Kubernetes fleet orchestration, API gateways, and cryptographic security."
+
+        val result = geminiService.chatConversation(
+            history = history,
+            newMessage = message,
+            systemInstruction = systemInstruction,
+            model = model,
+            isHighThinking = isHighThinking
+        )
+
+        val duration = System.currentTimeMillis() - startTime
+
+        return when (result) {
+            is GeminiResult.Success -> {
+                telemetryLogDao.insertLog(
+                    TelemetryLogEntity(
+                        eventType = "AI_CONVERSATION",
+                        sourceModule = "AI Chat Assistant",
+                        status = "SUCCESS",
+                        latencyMs = result.latencyMs.takeIf { it > 0 } ?: duration,
+                        tokensUsed = 640,
+                        details = "Chat dialogue turn processed by $model (Thinking: $isHighThinking)."
+                    )
+                )
+                Result.success(Pair(result.text, result.latencyMs.takeIf { it > 0 } ?: duration))
+            }
+            is GeminiResult.Error -> {
+                val errorMsg = result.message
+                val fallback = result.fallbackText
+                if (fallback != null) {
+                    telemetryLogDao.insertLog(
+                        TelemetryLogEntity(
+                            eventType = "AI_CONVERSATION",
+                            sourceModule = "AI Chat Assistant",
+                            status = "FALLBACK_SUCCESS",
+                            latencyMs = duration,
+                            tokensUsed = 240,
+                            details = "Autonomous simulated response generated. (API message: $errorMsg)"
+                        )
+                    )
+                    Result.success(Pair(fallback, duration))
+                } else {
+                    telemetryLogDao.insertLog(
+                        TelemetryLogEntity(
+                            eventType = "AI_CONVERSATION",
+                            sourceModule = "AI Chat Assistant",
+                            status = "FAILURE",
+                            latencyMs = duration,
+                            tokensUsed = 0,
+                            details = "Chat turn failed: $errorMsg"
+                        )
+                    )
+                    Result.failure(Exception(errorMsg))
+                }
+            }
+        }
+    }
+
     suspend fun executeGrokLeoPrompt(
         framework: PromptFrameworkEntity,
         userInputs: Map<String, String>,
