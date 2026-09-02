@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Central AI Core Node (Sosa XAI Cyber Hexagon) -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        
+        <!-- Outer Glowing Ring -->
+        <path
+            android:strokeColor="#FF00E5FF"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:pathData="M54,26 L78,40 L78,68 L54,82 L30,68 L30,40 Z" />
+
+        <!-- Diagonal X-Intersecting Accents -->
+        <path
+            android:strokeColor="#FF38EF7D"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:pathData="M38,38 L70,70" />
+        <path
+            android:strokeColor="#FF00E5FF"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:pathData="M70,38 L38,70" />
+
+        <!-- Core Quantum Dot -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M54,50 A4,4 0 1,0 54,58 A4,4 0 1,0 54,50 Z" />
+            
+        <!-- Neural Node Satellites -->
+        <path
+            android:fillColor="#FF00E5FF"
+            android:pathData="M54,23 A3,3 0 1,0 54,29 A3,3 0 1,0 54,23 Z" />
+        <path
+            android:fillColor="#FF00E5FF"
+            android:pathData="M78,37 A3,3 0 1,0 78,43 A3,3 0 1,0 78,37 Z" />
+        <path
+            android:fillColor="#FF38EF7D"
+            android:pathData="M78,65 A3,3 0 1,0 78,71 A3,3 0 1,0 78,65 Z" />
+        <path
+            android:fillColor="#FF00E5FF"
+            android:pathData="M54,79 A3,3 0 1,0 54,85 A3,3 0 1,0 54,79 Z" />
+        <path
+            android:fillColor="#FF38EF7D"
+            android:pathData="M30,65 A3,3 0 1,0 30,71 A3,3 0 1,0 30,65 Z" />
+        <path
+            android:fillColor="#FF00E5FF"
+            android:pathData="M30,37 A3,3 0 1,0 30,43 A3,3 0 1,0 30,37 Z" />
+    </group>
+</vector>
+
