@@ -34,31 +34,29 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,6 +67,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.local.entity.ChatMessageEntity
 import com.example.ui.components.StatusPill
 import com.example.ui.theme.ElegantActivePill
 import com.example.ui.theme.ElegantIceBlue
@@ -85,28 +84,32 @@ import com.example.ui.theme.SosaSurfaceVariant
 import com.example.ui.theme.SosaTextMuted
 import com.example.ui.theme.SosaTextPrimary
 import com.example.ui.theme.SosaTextSecondary
-import com.example.ui.viewmodel.ChatMessage
 import com.example.ui.viewmodel.SosaXaiViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * ChatScreen composable using Material3 displaying chat messages retrieved reactively
+ * from the Room database, including an interactive text input field and send button.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AiChatScreen(
+fun ChatScreen(
     viewModel: SosaXaiViewModel,
     modifier: Modifier = Modifier
 ) {
+    // Reactive message stream retrieved from Room Database
+    val messages by viewModel.chatMessages.collectAsState()
     val chatState by viewModel.chatState.collectAsState()
     val context = LocalContext.current
     val listState = rememberLazyListState()
 
-    // Quick prompts suggestions
     val quickSuggestions = listOf(
         "Audit Kubernetes cluster security",
         "Explain Grok Leo reasoning structure",
         "Scale pod replicas for high load",
-        "Generate HMAC verification code",
+        "Generate HMAC-SHA256 signature",
         "Optimize API gateway latency"
     )
 
@@ -116,10 +119,10 @@ fun AiChatScreen(
         "gemini-3.1-flash-lite-preview" to "Flash Lite"
     )
 
-    // Auto-scroll on new message
-    LaunchedEffect(chatState.messages.size, chatState.isSending) {
-        if (chatState.messages.isNotEmpty()) {
-            listState.animateScrollToItem(chatState.messages.size)
+    // Auto-scroll to latest message when new message arrives in Room database
+    LaunchedEffect(messages.size, chatState.isSending) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size)
         }
     }
 
@@ -127,7 +130,7 @@ fun AiChatScreen(
         modifier = modifier
             .fillMaxSize()
             .background(SosaBackground)
-            .testTag("ai_chat_screen")
+            .testTag("chat_screen")
     ) {
         // Top Control Header
         Surface(
@@ -144,33 +147,63 @@ fun AiChatScreen(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(ElegantLavender.copy(alpha = 0.15f)),
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(ElegantLavender.copy(alpha = 0.16f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Psychology,
-                                contentDescription = "AI Agent",
+                                contentDescription = "AI Copilot",
                                 tint = ElegantLavender,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                         Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "SOSA X AI COPILOT",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ElegantLavender,
+                                    letterSpacing = 1.sp
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(ElegantIceBlue.copy(alpha = 0.15f))
+                                        .padding(horizontal = 5.dp, vertical = 2.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Storage,
+                                            contentDescription = "Room Persistence",
+                                            tint = ElegantIceBlue,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                        Text(
+                                            text = "ROOM DB",
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = ElegantIceBlue,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
+                                }
+                            }
                             Text(
-                                text = "SOSA X AI COPILOT",
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = ElegantLavender,
-                                letterSpacing = 1.sp
-                            )
-                            Text(
-                                text = "Autonomous Enterprise AI Intelligence",
+                                text = "${messages.size} messages in persistent database",
                                 fontSize = 10.sp,
                                 color = SosaTextSecondary
                             )
@@ -186,12 +219,12 @@ fun AiChatScreen(
                         IconButton(
                             onClick = { viewModel.clearChat() },
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .testTag("clear_chat_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CleaningServices,
-                                contentDescription = "Clear Chat",
+                                contentDescription = "Clear Chat History",
                                 tint = SosaTextMuted,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -201,7 +234,7 @@ fun AiChatScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Model Selector & High Thinking Row
+                // Model Selection Chips & Reasoning Config
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -234,7 +267,7 @@ fun AiChatScreen(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    // High Thinking toggle badge
+                    // High Thinking toggle chip
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
@@ -287,30 +320,68 @@ fun AiChatScreen(
             }
         }
 
-        // Messages List
+        // Messages List (Retrieved from Room Database)
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .testTag("chat_messages_list"),
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(chatState.messages, key = { it.id }) { message ->
-                ChatMessageBubble(
-                    message = message,
-                    onCopy = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("AI Response", message.content))
-                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+            if (messages.isEmpty() && !chatState.isSending) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = null,
+                                tint = SosaTextMuted,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Text(
+                                text = "No messages in Room Database",
+                                fontSize = 13.sp,
+                                color = SosaTextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Send a prompt below to begin your session",
+                                fontSize = 11.sp,
+                                color = SosaTextMuted
+                            )
+                        }
                     }
-                )
+                }
+            } else {
+                items(messages, key = { it.id }) { message ->
+                    RoomChatMessageItem(
+                        message = message,
+                        onCopy = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("Sosa X AI Message", message.content))
+                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                        },
+                        onDelete = {
+                            viewModel.deleteChatMessage(message)
+                        }
+                    )
+                }
             }
 
             if (chatState.isSending) {
                 item {
-                    AiThinkingIndicator()
+                    ThinkingBubble()
                 }
             }
         }
@@ -357,7 +428,7 @@ fun AiChatScreen(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Bottom Input Area
+        // Bottom Input Area with Text Field and Send Button
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -376,7 +447,7 @@ fun AiChatScreen(
                     onValueChange = { viewModel.updateChatInput(it) },
                     placeholder = {
                         Text(
-                            text = "Ask Sosa X AI anything (e.g. cloud, reasoning, code)...",
+                            text = "Message Sosa X AI (e.g. cloud, reasoning, code)...",
                             fontSize = 12.sp,
                             color = SosaTextMuted
                         )
@@ -402,7 +473,7 @@ fun AiChatScreen(
                     onClick = { viewModel.sendChatMessage() },
                     enabled = chatState.currentInput.isNotBlank() && !chatState.isSending,
                     modifier = Modifier
-                        .size(46.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(
                             if (chatState.currentInput.isNotBlank() && !chatState.isSending)
@@ -410,7 +481,7 @@ fun AiChatScreen(
                             else
                                 SosaSurfaceVariant
                         )
-                        .testTag("send_chat_button")
+                        .testTag("send_button")
                 ) {
                     if (chatState.isSending) {
                         CircularProgressIndicator(
@@ -421,7 +492,7 @@ fun AiChatScreen(
                     } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Send",
+                            contentDescription = "Send Message",
                             tint = if (chatState.currentInput.isNotBlank()) ElegantLavenderOn else SosaTextMuted,
                             modifier = Modifier.size(20.dp)
                         )
@@ -433,16 +504,19 @@ fun AiChatScreen(
 }
 
 @Composable
-fun ChatMessageBubble(
-    message: ChatMessage,
-    onCopy: () -> Unit
+fun RoomChatMessageItem(
+    message: ChatMessageEntity,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val isUser = message.sender == "user"
     val timeFormat = remember { SimpleDateFormat("HH:mm:ss", Locale.getDefault()) }
     val formattedTime = remember(message.timestamp) { timeFormat.format(Date(message.timestamp)) }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("chat_message_${message.id}"),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         if (!isUser) {
@@ -467,27 +541,20 @@ fun ChatMessageBubble(
             modifier = Modifier.widthIn(max = 300.dp),
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
-            Surface(
-                modifier = Modifier
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = if (isUser) 16.dp else 4.dp,
-                            bottomEnd = if (isUser) 4.dp else 16.dp
-                        )
-                    )
-                    .border(
-                        1.dp,
-                        if (isUser) ElegantLavender.copy(alpha = 0.3f) else SosaBorderSubtle,
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = if (isUser) 16.dp else 4.dp,
-                            bottomEnd = if (isUser) 4.dp else 16.dp
-                        )
-                    ),
-                color = if (isUser) ElegantLavender.copy(alpha = 0.18f) else SosaSurfaceDark
+            Card(
+                shape = RoundedCornerShape(
+                    topStart = 16.dp,
+                    topEnd = 16.dp,
+                    bottomStart = if (isUser) 16.dp else 4.dp,
+                    bottomEnd = if (isUser) 4.dp else 16.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isUser) ElegantLavender.copy(alpha = 0.18f) else SosaSurfaceDark
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isUser) ElegantLavender.copy(alpha = 0.35f) else SosaBorderSubtle
+                )
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
@@ -511,29 +578,36 @@ fun ChatMessageBubble(
                             fontFamily = FontFamily.Monospace
                         )
 
-                        if (!isUser) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                if (message.latencyMs != null && message.latencyMs > 0) {
-                                    Text(
-                                        text = "${message.latencyMs}ms",
-                                        fontSize = 9.sp,
-                                        color = ElegantIceBlue,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
-
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy message",
-                                    tint = SosaTextSecondary,
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .clickable { onCopy() }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (!isUser && message.latencyMs != null && message.latencyMs > 0) {
+                                Text(
+                                    text = "${message.latencyMs}ms",
+                                    fontSize = 9.sp,
+                                    color = ElegantIceBlue,
+                                    fontFamily = FontFamily.Monospace
                                 )
                             }
+
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copy message",
+                                tint = SosaTextSecondary,
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clickable { onCopy() }
+                            )
+
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete message",
+                                tint = SosaTextMuted,
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clickable { onDelete() }
+                            )
                         }
                     }
                 }
@@ -561,7 +635,7 @@ fun ChatMessageBubble(
 }
 
 @Composable
-fun AiThinkingIndicator() {
+private fun ThinkingBubble() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
@@ -600,7 +674,7 @@ fun AiThinkingIndicator() {
                     strokeWidth = 2.dp
                 )
                 Text(
-                    text = "Sosa X AI is thinking...",
+                    text = "Sosa X AI is reasoning...",
                     fontSize = 11.sp,
                     color = ElegantLavender,
                     fontFamily = FontFamily.Monospace

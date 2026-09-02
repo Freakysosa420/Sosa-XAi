@@ -6,13 +6,25 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.data.local.dao.ApiEndpointDao
+import com.example.data.local.dao.ChatMessageDao
 import com.example.data.local.dao.ContainerConfigDao
+import com.example.data.local.dao.GeneratedImageDao
 import com.example.data.local.dao.PromptFrameworkDao
+import com.example.data.local.dao.SearchReportDao
 import com.example.data.local.dao.TelemetryLogDao
+import com.example.data.local.dao.UserAccountDao
+import com.example.data.local.dao.VeoVideoDao
+import com.example.data.local.dao.VoiceSessionDao
 import com.example.data.local.entity.ApiEndpointEntity
+import com.example.data.local.entity.ChatMessageEntity
 import com.example.data.local.entity.ContainerConfigEntity
+import com.example.data.local.entity.GeneratedImageEntity
 import com.example.data.local.entity.PromptFrameworkEntity
+import com.example.data.local.entity.SearchReportEntity
 import com.example.data.local.entity.TelemetryLogEntity
+import com.example.data.local.entity.UserAccountEntity
+import com.example.data.local.entity.VeoVideoEntity
+import com.example.data.local.entity.VoiceSessionEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,9 +34,15 @@ import kotlinx.coroutines.launch
         ApiEndpointEntity::class,
         ContainerConfigEntity::class,
         PromptFrameworkEntity::class,
-        TelemetryLogEntity::class
+        TelemetryLogEntity::class,
+        ChatMessageEntity::class,
+        VeoVideoEntity::class,
+        GeneratedImageEntity::class,
+        SearchReportEntity::class,
+        VoiceSessionEntity::class,
+        UserAccountEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,6 +50,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun containerConfigDao(): ContainerConfigDao
     abstract fun promptFrameworkDao(): PromptFrameworkDao
     abstract fun telemetryLogDao(): TelemetryLogDao
+    abstract fun chatMessageDao(): ChatMessageDao
+    abstract fun veoVideoDao(): VeoVideoDao
+    abstract fun generatedImageDao(): GeneratedImageDao
+    abstract fun searchReportDao(): SearchReportDao
+    abstract fun voiceSessionDao(): VoiceSessionDao
+    abstract fun userAccountDao(): UserAccountDao
 
     companion object {
         @Volatile
@@ -70,6 +94,19 @@ abstract class AppDatabase : RoomDatabase() {
             val apiDao = database.apiEndpointDao()
             val containerDao = database.containerConfigDao()
             val telemetryDao = database.telemetryLogDao()
+            val chatDao = database.chatMessageDao()
+
+            if (chatDao.getCount() == 0) {
+                chatDao.insertMessage(
+                    ChatMessageEntity(
+                        sender = "ai",
+                        content = "Greetings. I am Sosa X AI Assistant connected directly to your local Room database. How can I assist you with architecture design, cloud orchestration, Grok Leo reasoning, or security auditing today?",
+                        timestamp = System.currentTimeMillis() - 60000,
+                        latencyMs = 18,
+                        modelUsed = "gemini-3.1-pro-preview"
+                    )
+                )
+            }
 
             if (promptDao.getCount() == 0) {
                 promptDao.insertAll(

@@ -60,3 +60,74 @@ data class TelemetryLogEntity(
     val tokensUsed: Int,
     val details: String
 )
+
+@Entity(tableName = "chat_messages")
+data class ChatMessageEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val sender: String, // "user" or "ai"
+    val content: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val latencyMs: Long? = null,
+    val modelUsed: String? = null
+)
+
+@Entity(tableName = "veo_videos")
+data class VeoVideoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val prompt: String,
+    val sourceImageUrl: String? = null, // null for text-to-video, uri/path for image-to-video
+    val videoUrl: String,
+    val aspectRatio: String = "16:9", // "16:9" or "9:16"
+    val resolution: String = "1080p",
+    val durationSeconds: Int = 5,
+    val status: String = "COMPLETED", // PENDING, GENERATING, COMPLETED, FAILED
+    val timestamp: Long = System.currentTimeMillis(),
+    val modelUsed: String = "veo-3.1-fast-generate-preview"
+)
+
+@Entity(tableName = "generated_images")
+data class GeneratedImageEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val prompt: String,
+    val sourceImageUrl: String? = null, // if editing existing image
+    val outputImageUrl: String,
+    val aspectRatio: String = "1:1", // "1:1", "16:9", "9:16", "4:3", "3:4"
+    val resolution: String = "1K", // "512px", "1K", "2K", "4K"
+    val timestamp: Long = System.currentTimeMillis(),
+    val modelUsed: String = "gemini-3.1-flash-image-preview"
+)
+
+@Entity(tableName = "search_reports")
+data class SearchReportEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val query: String,
+    val answer: String,
+    val sourcesJson: String, // JSON array of sources [{title, url, snippet}]
+    val searchQueriesJson: String, // JSON array of search queries executed
+    val timestamp: Long = System.currentTimeMillis(),
+    val latencyMs: Long = 0,
+    val modelUsed: String = "gemini-3.5-flash"
+)
+
+@Entity(tableName = "voice_sessions")
+data class VoiceSessionEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val userUtterance: String,
+    val aiReply: String,
+    val latencyMs: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val modelUsed: String = "gemini-3.1-flash-live-preview"
+)
+
+@Entity(tableName = "user_account")
+data class UserAccountEntity(
+    @PrimaryKey val uid: String,
+    val email: String,
+    val displayName: String,
+    val photoUrl: String? = null,
+    val provider: String = "google.com",
+    val lastLoginTime: Long = System.currentTimeMillis(),
+    val isFirestoreSynced: Boolean = true
+)
+
+

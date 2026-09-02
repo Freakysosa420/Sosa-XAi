@@ -7,9 +7,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.data.local.entity.ApiEndpointEntity
+import com.example.data.local.entity.ChatMessageEntity
 import com.example.data.local.entity.ContainerConfigEntity
+import com.example.data.local.entity.GeneratedImageEntity
 import com.example.data.local.entity.PromptFrameworkEntity
+import com.example.data.local.entity.SearchReportEntity
 import com.example.data.local.entity.TelemetryLogEntity
+import com.example.data.local.entity.UserAccountEntity
+import com.example.data.local.entity.VeoVideoEntity
+import com.example.data.local.entity.VoiceSessionEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -98,3 +104,107 @@ interface TelemetryLogDao {
     @Query("SELECT COUNT(*) FROM telemetry_logs")
     suspend fun getCount(): Int
 }
+
+@Dao
+interface ChatMessageDao {
+    @Query("SELECT * FROM chat_messages ORDER BY timestamp ASC")
+    fun getAllMessages(): Flow<List<ChatMessageEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMessage(message: ChatMessageEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(messages: List<ChatMessageEntity>)
+
+    @Delete
+    suspend fun deleteMessage(message: ChatMessageEntity)
+
+    @Query("DELETE FROM chat_messages")
+    suspend fun clearAllMessages()
+
+    @Query("SELECT COUNT(*) FROM chat_messages")
+    suspend fun getCount(): Int
+}
+
+@Dao
+interface VeoVideoDao {
+    @Query("SELECT * FROM veo_videos ORDER BY timestamp DESC")
+    fun getAllVideos(): Flow<List<VeoVideoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVideo(video: VeoVideoEntity): Long
+
+    @Delete
+    suspend fun deleteVideo(video: VeoVideoEntity)
+
+    @Query("DELETE FROM veo_videos")
+    suspend fun clearAll()
+
+    @Query("SELECT COUNT(*) FROM veo_videos")
+    suspend fun getCount(): Int
+}
+
+@Dao
+interface GeneratedImageDao {
+    @Query("SELECT * FROM generated_images ORDER BY timestamp DESC")
+    fun getAllImages(): Flow<List<GeneratedImageEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertImage(image: GeneratedImageEntity): Long
+
+    @Delete
+    suspend fun deleteImage(image: GeneratedImageEntity)
+
+    @Query("DELETE FROM generated_images")
+    suspend fun clearAll()
+
+    @Query("SELECT COUNT(*) FROM generated_images")
+    suspend fun getCount(): Int
+}
+
+@Dao
+interface SearchReportDao {
+    @Query("SELECT * FROM search_reports ORDER BY timestamp DESC")
+    fun getAllReports(): Flow<List<SearchReportEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReport(report: SearchReportEntity): Long
+
+    @Delete
+    suspend fun deleteReport(report: SearchReportEntity)
+
+    @Query("DELETE FROM search_reports")
+    suspend fun clearAll()
+
+    @Query("SELECT COUNT(*) FROM search_reports")
+    suspend fun getCount(): Int
+}
+
+@Dao
+interface VoiceSessionDao {
+    @Query("SELECT * FROM voice_sessions ORDER BY timestamp DESC")
+    fun getAllSessions(): Flow<List<VoiceSessionEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSession(session: VoiceSessionEntity): Long
+
+    @Delete
+    suspend fun deleteSession(session: VoiceSessionEntity)
+
+    @Query("DELETE FROM voice_sessions")
+    suspend fun clearAll()
+}
+
+@Dao
+interface UserAccountDao {
+    @Query("SELECT * FROM user_account LIMIT 1")
+    fun getUserAccount(): Flow<UserAccountEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveUserAccount(user: UserAccountEntity)
+
+    @Query("DELETE FROM user_account")
+    suspend fun clearUserAccount()
+}
+
+

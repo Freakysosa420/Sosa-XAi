@@ -6,10 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.data.local.dao.ApiEndpointDao
+import com.example.data.local.dao.ChatMessageDao
 import com.example.data.local.dao.ContainerConfigDao
 import com.example.data.local.dao.PromptFrameworkDao
 import com.example.data.local.dao.TelemetryLogDao
 import com.example.data.local.entity.ApiEndpointEntity
+import com.example.data.local.entity.ChatMessageEntity
 import com.example.data.local.entity.ContainerConfigEntity
 import com.example.data.local.entity.PromptFrameworkEntity
 import com.example.data.local.entity.TelemetryLogEntity
@@ -22,7 +24,8 @@ import kotlinx.coroutines.launch
         ApiEndpointEntity::class,
         ContainerConfigEntity::class,
         PromptFrameworkEntity::class,
-        TelemetryLogEntity::class
+        TelemetryLogEntity::class,
+        ChatMessageEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -32,6 +35,7 @@ abstract class SosaXAiDatabase : RoomDatabase() {
     abstract fun containerConfigDao(): ContainerConfigDao
     abstract fun promptFrameworkDao(): PromptFrameworkDao
     abstract fun telemetryLogDao(): TelemetryLogDao
+    abstract fun chatMessageDao(): ChatMessageDao
 
     companion object {
         @Volatile
